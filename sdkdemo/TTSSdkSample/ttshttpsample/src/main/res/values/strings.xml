@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">TTS Http Sample</string>
+    <string name="status">Status message</string>
+    <string name="hits">Input text to synthesize here</string>
+</resources>
