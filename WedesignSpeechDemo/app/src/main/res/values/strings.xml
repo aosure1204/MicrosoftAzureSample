@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">WedesignSpeechDemo</string>
+
+    <string name="need_record_audio_permissions">Voice functionality need record audio permissions.</string>
+</resources>
