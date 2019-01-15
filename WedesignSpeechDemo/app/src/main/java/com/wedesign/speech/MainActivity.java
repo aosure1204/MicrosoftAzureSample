@@ -189,7 +189,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 mLuisResult.setText(luisResult);
             }
         });
-        }
+    }
 
     private void setTTSSendText(String ttsSendText) {
         mLocalResult.setText(ttsSendText);
