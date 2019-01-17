@@ -15,6 +15,7 @@ public class LUISResponse {
     public static final String NONE_INTENT = "None";
 
     private String intent;
+    private String type;
     private String entity;
 
     public LUISResponse(JSONObject JSONresponse) {
@@ -30,17 +31,20 @@ public class LUISResponse {
         JSONArray entities = JSONresponse.optJSONArray("entities");
         for(int i = 0; i < entities.length(); i++) {
             JSONObject entityObject = entities.optJSONObject(i);
-            String type = entityObject.optString("type");
-            if(!("KEYWORD".equals(type))) {
+            type = entityObject.optString("type");
+            /*if(!("KEYWORD".equals(type))) {
                 return;
-            }
+            }*/
             entity = entityObject.optString("entity");
         }
     }
 
-
     public String getIntent() {
         return intent;
+    }
+
+    public String getType() {
+        return type;
     }
 
     public String getEntity() {
