@@ -1,60 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:textSize="16sp"
-    tools:context=".MainActivity">
+    android:background="@drawable/bg_speech">
 
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
+    <ImageButton
+        android:id="@+id/btn_back"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Recognize result: "/>
-        <TextView
-            android:id="@+id/recognize_result"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-    </LinearLayout>
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="LUIS result: "/>
-        <TextView
-            android:id="@+id/luis_result"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-    </LinearLayout>
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="TTS send text: "/>
-        <TextView
-            android:id="@+id/local_result"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-    </LinearLayout>
+        android:layout_marginLeft="20px"
+        android:layout_marginTop="20px"
+        android:background="@drawable/ic_back"/>
 
-    <Button
+    <TextView
+        android:id="@+id/text_show_value"
+        android:layout_width="1820px"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="356px"
+        android:layout_marginLeft="50px"
+        android:layout_marginRight="50px"
+        android:maxLines="2"
+        android:gravity="center"
+        android:textSize="36sp"
+        android:textColor="#FFFFFF"
+        android:text="Hello, I'm Well." />
+    
+    <ImageButton
         android:id="@+id/btn_start"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:text="Start"/>
-</LinearLayout>
+        android:layout_marginLeft="880px"
+        android:layout_marginTop="622px"
+        android:background="@drawable/ic_microphone"/>
+
+    <ImageView
+        android:id="@+id/img_show_animate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="835px"
+        android:layout_marginTop="577px"
+        android:alpha="0"
+        android:src="@drawable/ic_microphone_circle"/>
+
+</RelativeLayout>

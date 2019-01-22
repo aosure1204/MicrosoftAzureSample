@@ -1,9 +1,10 @@
 package com.wedesign.speech;
 
 import android.Manifest;
-import android.content.ComponentName;
+import android.animation.Animator;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -11,6 +12,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,6 +25,9 @@ import com.microsoft.cognitiveservices.luis.clientlibrary.LUISClient;
 import com.microsoft.cognitiveservices.luis.clientlibrary.LUISResponse;
 import com.microsoft.cognitiveservices.luis.clientlibrary.LUISResponseHandler;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private static final String TAG = "MainActivity";
 
@@ -29,10 +35,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     // correlating permission request responses with the request.
     private static final int MY_PERMISSIONS_REQUEST_RECORD_AUDIO = 0;
 
-    private TextView mRecognizeResult;
-    private TextView mLuisResult;
-    private TextView mLocalResult;
-    private Button mBtnStart;
+
+    private ImageButton mBtnBack;
+    private TextView mTextShowValue;
+    private ImageButton mBtnStart;
+    private ImageView mImgShowAnimate;
 
     // speech to text
     private SpeechStt mSpeechStt;
@@ -45,10 +52,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mRecognizeResult = (TextView) findViewById(R.id.recognize_result);
-        mLuisResult = (TextView) findViewById(R.id.luis_result);
-        mLocalResult = (TextView) findViewById(R.id.local_result);
-        mBtnStart = (Button) findViewById(R.id.btn_start);
+        mBtnBack = (ImageButton) findViewById(R.id.btn_back);
+        mTextShowValue = (TextView) findViewById(R.id.text_show_value);
+        mBtnStart = (ImageButton) findViewById(R.id.btn_start);
+        mImgShowAnimate = (ImageView) findViewById(R.id.img_show_animate);
+        mBtnBack.setOnClickListener(this);
         mBtnStart.setOnClickListener(this);
 
         // Request permissions needed for speech recognition
@@ -85,15 +93,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mSpeechStt.setOnRecognizeListener(new SpeechStt.OnRecognizeListener() {
             @Override
             public void onSuccess(String result) {
-                Log.d(TAG, "onClick: result = " + result);
+                Log.d(TAG, "step1 Speech To Text: result = " + result);
+                cancleAnimate();
                 setRecognizedResult(result);
                 getIntentTextFromLUIS(result);
             }
 
             @Override
             public void onFail() {
-                setRecognizedResult("Recognition failed.");
+                String hint = "Recognition failed.";
+                Log.d(TAG, "step1 Speech To Text: result = " + hint);
                 enableButtons();
+                cancleAnimate();
+                setRecognizedResult(hint);
+                speechByTTS(hint);
             }
         });
     }
@@ -103,12 +116,63 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (v.getId()) {
             case R.id.btn_start:
                 disableButtons();
+                startAnimate();
                 clearTexts();
                 mSpeechStt.getRecognizedTextFromMicrophone();
+                break;
+            case R.id.btn_back:
+                finish();
                 break;
             default:
                 break;
         }
+    }
+
+    private Timer mAnimateRepeat;
+
+    private void startAnimate(){
+        mAnimateRepeat = new Timer();
+        TimerTask animateTask = new TimerTask() {
+            @Override
+            public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        fadingAnimate();
+                        Log.d(TAG, "TimerTask's Thread id: " + Thread.currentThread().getId());
+                    }
+                });
+            }
+        };
+        mAnimateRepeat.schedule(animateTask, 0, 2000);
+    }
+
+    private void cancleAnimate(){
+        mAnimateRepeat.cancel();
+    }
+
+    private void fadingAnimate() {
+        mImgShowAnimate.animate().alpha(1f).setDuration(1000).setListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mImgShowAnimate.animate().alpha(0f).setDuration(1000);
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
+            }
+        });
     }
 
     private void getIntentTextFromLUIS(String utterance){
@@ -121,19 +185,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         @Override
                         public void onSuccess(LUISResponse response) {
                             String resultStr = "intent = " + response.getIntent() + ", entity = " + response.getEntity();
-                            setLUISResult(resultStr);
+                            Log.d(TAG, "step2 LUIS result = " + resultStr);
                             processLUISResult(response);
                         }
 
                         @Override
                         public void onFailure(Exception e) {
-                            setLUISResult("LUIS error");
-                            Log.e(TAG, "Exception err", e);
+                            Log.e(TAG, "step2 LUIS Exception err :", e);
                             enableButtons();
                         }
                     });
                 } catch (Exception e) {
-                    Log.e(TAG, "Exception err", e);
+                    Log.e(TAG, "step2 LUIS Exception err :", e);
                 }
             }
         });
@@ -153,8 +216,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             }
 
+            Log.d(TAG, "step3 Text To Speech: " + resultStr);
             setTTSSendText(resultStr);
-            speechLUISResultFromTTS(resultStr);
+            speechByTTS(resultStr);
             enableButtons();
         });
     }
@@ -168,25 +232,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     case 0:
                         boolean musicResult = startAppByPackageName("com.example.shengchuang.mytestmusic");
                         if(musicResult) {
-                            resultStr = "Starting the music application for you";
+                            resultStr = "Open the music application for you right now.";
                         } else {
-                            resultStr = "The specific music application is not installed";
+                            resultStr = "The specific music application is not installed.";
                         }
                         break;
                     case 1:
                         boolean airResult = startAppByPackageName("com.android.airconditioner");
                         if(airResult) {
-                            resultStr = "Starting the air conditioning application for you";
+                            resultStr = "Open the air conditioning application for you right now.";
                         } else {
-                            resultStr = "The specific air conditioning application is not installed";
+                            resultStr = "The specific air conditioning application is not installed.";
                         }
                         break;
                     case 2:
                         boolean naviResult = startAppByPackageName("com.autonavi.amapauto");
                         if(naviResult) {
-                            resultStr = "Starting the navigation application for you";
+                            resultStr = "Open the navigation application for you right now.";
                         } else {
-                            resultStr = "The specific navigation application is not installed";
+                            resultStr = "The specific navigation application is not installed.";
                         }
                         break;
                 }
@@ -204,13 +268,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Toast.makeText(this, "未安装", Toast.LENGTH_LONG).show();
             return false;
         }else{
-            startActivity(intent);
+            startActivityDelay(intent);
             return true;
         }
-
     }
 
-    private void speechLUISResultFromTTS(String ttsText) {
+    private void startActivityDelay(Intent intent){
+        new Handler().postDelayed(new Runnable() {
+            public void run() {
+                startActivity(intent);
+            }
+        }, 2000);
+    }
+
+    private void speechByTTS(String ttsText) {
         if(ttsText != null && !ttsText.isEmpty()) {
             mSpeechTts = new SpeechTts();
             mSpeechTts.speek(ttsText);
@@ -221,34 +292,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mBtnStart.setEnabled(false);
     }
 
-    private void clearTexts() {
-        mRecognizeResult.setText("");
-        mLuisResult.setText("");
-        mLocalResult.setText("");
-    }
-
     private void enableButtons() {
         MainActivity.this.runOnUiThread(() -> {
             mBtnStart.setEnabled(true);
         });
     }
 
-    private void setRecognizedResult(String recognizedResult) {
-        MainActivity.this.runOnUiThread(() -> {
-            mRecognizeResult.setText(recognizedResult);
-        });
+    private void clearTexts() {
+        mTextShowValue.setText("");
     }
 
-    private void setLUISResult(String luisResult) {
-        MainActivity.this.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mLuisResult.setText(luisResult);
-            }
+    private void setRecognizedResult(String recognizedResult) {
+        MainActivity.this.runOnUiThread(() -> {
+            mTextShowValue.setText(recognizedResult);
         });
     }
 
     private void setTTSSendText(String ttsSendText) {
-        mLocalResult.setText(ttsSendText);
+        mTextShowValue.setText(ttsSendText);
     }
 }
